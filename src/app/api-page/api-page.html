@@ -1,0 +1,18 @@
+<div class="api-container">
+  <h1>API Data</h1>
+
+  @if (loading) {
+  <div class="loading">Loading data...</div>
+  } @if (error) {
+  <div class="error">{{ error }}</div>
+  } @if (data.length > 0) {
+  <div class="data-list">
+    @for (item of data; track item.id) {
+    <div class="data-item">
+      <h3>{{ item.title }}</h3>
+      <p>{{ item.body }}</p>
+    </div>
+    }
+  </div>
+  }
+</div>
