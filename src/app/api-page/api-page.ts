@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../services/api.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-api-page',
@@ -14,7 +15,10 @@ export class ApiPage implements OnInit {
   loading = true;
   error: string | null = null;
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.fetchData();
@@ -31,5 +35,9 @@ export class ApiPage implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }

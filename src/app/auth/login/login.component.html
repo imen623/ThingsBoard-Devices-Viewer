@@ -1,0 +1,43 @@
+<div class="login-container">
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <h2>Login to thingsBoard account</h2>
+
+    <label for="email">Email</label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      placeholder="Enter your email"
+    />
+    <div
+      class="error"
+      *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+    >
+      Valid email is required.
+    </div>
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      type="password"
+      formControlName="password"
+      placeholder="Enter your password"
+    />
+    <div
+      class="error"
+      *ngIf="
+        loginForm.get('password')?.invalid && loginForm.get('password')?.touched
+      "
+    >
+      Password is required.
+    </div>
+
+    <button type="submit" [disabled]="loginForm.invalid">Login</button>
+    <a
+      href="https://demo.thingsboard.io"
+      target="_blank"
+      rel="noopener noreferrer"
+      >Create your account here</a
+    >
+  </form>
+</div>
