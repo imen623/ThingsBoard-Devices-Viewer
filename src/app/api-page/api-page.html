@@ -1,19 +1,15 @@
-<div class="api-container">
-  <h1>API Data</h1>
-  <button (click)="logout()">Logout</button>
+<div class="layout">
+  <header class="layout-header">
+    <button class="btn btn-danger" (click)="logout()">Logout</button>
+  </header>
 
-  @if (loading) {
-  <div class="loading">Loading data...</div>
-  } @if (error) {
-  <div class="error">{{ error }}</div>
-  } @if (data.length > 0) {
-  <div class="data-list">
-    @for (item of data; track item.id) {
-    <div class="data-item">
-      <h3>{{ item.title }}</h3>
-      <p>{{ item.body }}</p>
+  <main class="layout-column">
+    <div *ngIf="!loading && !error">
+      <label>Device 1 :</label>
+      <p>Telemetry Value: {{ sliderValue }}</p>
     </div>
-    }
-  </div>
-  }
+
+    <div *ngIf="loading">Loading...</div>
+    <div *ngIf="error">{{ error }}</div>
+  </main>
 </div>
