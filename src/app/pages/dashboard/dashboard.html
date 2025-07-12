@@ -1,0 +1,11 @@
+<div class="layout">
+  <main class="layout-column">
+    <div *ngIf="!loading && !error">
+      <label>Device 1 :</label>
+      <p>Telemetry Value: {{ sliderValue }}</p>
+    </div>
+
+    <div *ngIf="loading">Loading...</div>
+    <div *ngIf="error">{{ error }}</div>
+  </main>
+</div>

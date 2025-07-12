@@ -1,0 +1,67 @@
+.header {
+  background: white;
+  padding: 0 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #3f51b5;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.user-menu {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu {
+  padding: 0.5rem 1rem;
+  border: 1px solid #3f51b5;
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.user-menu:hover .menu {
+  background-color: #3f51b5;
+  color: white;
+}
+
+.popover {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  z-index: 10;
+  width: 100px;
+  text-align: center;
+}
+
+.popover button {
+  background-color: #3f51b5;
+  border: none;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.popover button:hover {
+  background-color: #303f9f;
+}

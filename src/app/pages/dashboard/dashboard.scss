@@ -1,0 +1,20 @@
+nb-layout-column {
+  padding: 2rem;
+}
+
+.error {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 12px 0;
+  cursor: not-allowed;
+}

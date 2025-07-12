@@ -1,0 +1,13 @@
+<header class="header">
+  <div class="header-content">
+    <div>
+      <img src="assets/logo.png" />
+    </div>
+    <div class="user-menu" (click)="togglePopover()">
+      <span class="menu">menu</span>
+      <div class="popover" *ngIf="popoverOpen">
+        <button (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+</header>

@@ -41,7 +41,7 @@ export class LoginComponent {
       this.http.post<any>(url, body, { headers }).subscribe({
         next: (res) => {
           sessionStorage.setItem('token', res.token);
-          this.router.navigate(['/ApiPage']);
+          this.router.navigate(['/pages']);
         },
         error: (err) => {
           alert('Login failed: ' + err.error?.message || 'Unknown error');

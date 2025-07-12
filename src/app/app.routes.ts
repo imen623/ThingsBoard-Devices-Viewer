@@ -5,4 +5,9 @@ import { LoginComponent } from './auth/login/login.component';
 export const routes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'ApiPage', component: ApiPage },
+  {
+    path: 'pages',
+    loadChildren: () =>
+      import('./pages/pages-module').then((m) => m.PagesModule),
+  },
 ];
