@@ -1,4 +1,11 @@
 <div class="layout">
+  <header>
+    <div class="container">
+      <button class="new-device" (click)="openAddDeviceModal()">
+        Add Device
+      </button>
+    </div>
+  </header>
   <main class="layout-column">
     <div *ngIf="!loading && !error">
       <label>Device 1 :</label>
@@ -7,5 +14,59 @@
 
     <div *ngIf="loading">Loading...</div>
     <div *ngIf="error">{{ error }}</div>
+
+    <div class="device-list" *ngIf="devices.length > 0">
+      <div class="device-item" *ngFor="let device of devices">
+        <span>{{ device.name }} ({{ device.type }}) - ID: {{ device.id }}</span>
+      </div>
+    </div>
   </main>
+
+  <!-- Add Device Modal -->
+  <div *ngIf="showAddDeviceModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Add New Device</h2>
+      <form (ngSubmit)="saveNewDevice()">
+        <div class="form-group">
+          <label>Device Name:</label>
+          <input
+            type="text"
+            [(ngModel)]="newDevice.name"
+            name="deviceName"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Device ID:</label>
+          <input
+            type="text"
+            [(ngModel)]="newDevice.id"
+            name="deviceId"
+            required
+          />
+          <div *ngIf="idError" class="error-message">
+            Cannot find device with ID: {{ newDevice.id }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Device Type:</label>
+          <select [(ngModel)]="newDevice.type" name="deviceType" required>
+            <option value="sensor">Sensor</option>
+            <option value="actuator">Actuator</option>
+            <option value="controller">Controller</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeAddDeviceModal()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="confirm-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
