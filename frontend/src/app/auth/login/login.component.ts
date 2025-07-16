@@ -1,3 +1,4 @@
+// src/app/auth/login/login.component.ts
 import { Component } from '@angular/core';
 import {
   FormBuilder,
@@ -6,8 +7,8 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,7 @@ export class LoginComponent {
 
   constructor(
     private fb: FormBuilder,
-    private http: HttpClient,
+    private authService: AuthService, // Inject AuthService instead of HttpClient
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -29,28 +30,52 @@ export class LoginComponent {
       password: ['', Validators.required],
     });
   }
+
   onSubmit() {
     if (this.loginForm.valid) {
-      const url = 'https://demo.thingsboard.io/api/auth/login';
-      const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-      const body = {
-        username: this.loginForm.value.email,
-        password: this.loginForm.value.password,
-      };
+      const { email, password } = this.loginForm.value; // Get email and password from form
 
-      this.http.post<any>(url, body, { headers }).subscribe({
+      this.authService.login(email, password).subscribe({
+        // Inside LoginComponent's onSubmit next: (res) => { ... }
         next: (res) => {
-          sessionStorage.setItem('token', res.token);
-          this.router.navigate(['/pages']);
+          this.authService.saveToken(res.token); // Save ThingsBoard token
+          const userEmail = this.loginForm.value.email; // Get the email used for login
+
+          // Now call the Laravel registration API
+          this.authService
+            .registerWithThingsBoardToken(userEmail, res.token)
+            .subscribe({
+              next: (laravelRes) => {
+                console.log('User registered with Laravel:', laravelRes);
+                this.router.navigate(['/pages']); // Navigate after both operations are successful
+              },
+              error: (laravelErr) => {
+                console.error(
+                  'Laravel registration failed:',
+                  laravelErr.error?.message || 'Unknown Laravel error',
+                  laravelErr
+                );
+                // Decide how to handle this: navigate anyway, show error, etc.
+                // this.router.navigate(['/pages']); // Or navigate only on successful Laravel registration
+              },
+            });
         },
         error: (err) => {
-          alert('Login failed: ' + err.error?.message || 'Unknown error');
+          // Replace alert() with console.error or a custom message display
+          console.error(
+            'Login failed:',
+            err.error?.message || 'Unknown error',
+            err
+          );
+          // You might want to display a user-friendly message in the UI here
         },
       });
     }
   }
+
+  // If logout is triggered from the login page itself (less common),
+  // it should also use the AuthService
   logout() {
-    sessionStorage.removeItem('token');
-    this.router.navigate(['/']);
+    this.authService.logout(); // Use AuthService for logout
   }
 }

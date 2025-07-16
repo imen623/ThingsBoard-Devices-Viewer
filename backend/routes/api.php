@@ -15,4 +15,6 @@ use App\Http\Controllers\AuthController;
 |
 */
 
-Route::post('/register-after-thingsboard', [AuthController::class, 'registerAfterThingsBoard']);
+
+Route::post('/thingsboard/register', [AuthController::class, 'registerAfterThingsBoard'])
+    ->name('thingsboard.register');

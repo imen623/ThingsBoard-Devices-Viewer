@@ -3,9 +3,13 @@
     <div>
       <img src="assets/logo.png" />
     </div>
-    <div class="user-menu" (click)="togglePopover()">
-      <span class="menu">menu</span>
-      <div class="popover" *ngIf="popoverOpen">
+    <div class="user-menu">
+      <span class="menu" (click)="togglePopover()">menu</span>
+      <div
+        class="popover"
+        *ngIf="popoverOpenMenu"
+        (click)="$event.stopPropagation()"
+      >
         <button (click)="logout()">Logout</button>
       </div>
     </div>

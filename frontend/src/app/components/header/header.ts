@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -10,13 +11,21 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./header.scss'],
 })
 export class HeaderComponent {
-  popoverOpen = false;
-  constructor(private authService: AuthService) {}
+  popoverOpenMenu = false;
+
+  constructor(
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   togglePopover() {
-    this.popoverOpen = !this.popoverOpen;
+    this.popoverOpenMenu = !this.popoverOpenMenu;
+    this.cdr.detectChanges(); // force update
   }
 
   logout() {
     this.authService.logout();
+    this.popoverOpenMenu = false;
+    this.cdr.detectChanges(); // force update
   }
 }
