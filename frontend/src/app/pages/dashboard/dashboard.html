@@ -7,22 +7,47 @@
     </div>
   </header>
   <main class="layout-column">
-    <div *ngIf="!loading && !error">
-      <label>Device 1 :</label>
-      <p>Telemetry Value: {{ sliderValue }}</p>
-    </div>
-
-    <div *ngIf="loading">Loading...</div>
+    <!--  loading/error for initial data/devices -->
+    <div *ngIf="loading">Loading devices and telemetry...</div>
     <div *ngIf="error">{{ error }}</div>
 
-    <div class="device-list" *ngIf="devices.length > 0">
+    <!-- Display existing devices from Laravel -->
+    <div class="device-list" *ngIf="!loading && devices.length > 0">
+      <h3>My Devices</h3>
       <div class="device-item" *ngFor="let device of devices">
-        <span>{{ device.name }} ({{ device.type }}) - ID: {{ device.id }}</span>
+        <span
+          >{{ device.name }} ({{ device.type }}) - ID:
+          {{ device.thingsboard_device_id }}</span
+        >
+        <!-- Display telemetry for each device  -->
+        <div class="telemetry-info">
+          <span *ngIf="telemetryLoading.get(device.thingsboard_device_id)"
+            >Loading telemetry...</span
+          >
+          <span
+            *ngIf="telemetryError.get(device.thingsboard_device_id)"
+            class="error-message"
+          >
+            {{ telemetryError.get(device.thingsboard_device_id) }}
+          </span>
+          <span
+            *ngIf="
+              !telemetryLoading.get(device.thingsboard_device_id) &&
+              !telemetryError.get(device.thingsboard_device_id)
+            "
+          >
+            Telemetry: {{ deviceTelemetry.get(device.thingsboard_device_id) }}
+          </span>
+        </div>
+        <!-- will add more details/actions here -->
       </div>
+    </div>
+    <div *ngIf="!loading && devices.length === 0">
+      <p>No devices added yet. Click "Add Device" to get started!</p>
     </div>
   </main>
 
-  <!-- Add Device Modal -->
+  <!-- Device Modal -->
   <div *ngIf="showAddDeviceModal" class="modal-overlay">
     <div class="modal-content">
       <h2>Add New Device</h2>
@@ -37,15 +62,16 @@
           />
         </div>
         <div class="form-group">
-          <label>Device ID:</label>
+          <label>Device ID (ThingsBoard):</label>
           <input
             type="text"
             [(ngModel)]="newDevice.id"
             name="deviceId"
             required
           />
+          <!-- Display specific ID error message -->
           <div *ngIf="idError" class="error-message">
-            Cannot find device with ID: {{ newDevice.id }}
+            {{ idErrorMessage || "Invalid Device ID" }}
           </div>
         </div>
         <div class="form-group">
@@ -64,7 +90,9 @@
           >
             Cancel
           </button>
-          <button type="submit" class="confirm-btn">Save</button>
+          <button type="submit" class="confirm-btn" [disabled]="savingDevice">
+            {{ savingDevice ? "Saving..." : "Save" }}
+          </button>
         </div>
       </form>
     </div>

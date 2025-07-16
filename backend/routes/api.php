@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DeviceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,5 +17,6 @@ use App\Http\Controllers\AuthController;
 */
 
 
-Route::post('/thingsboard/register', [AuthController::class, 'registerAfterThingsBoard'])
-    ->name('thingsboard.register');
+    Route::post('/thingsboard/register', [AuthController::class, 'registerAfterThingsBoard']) ->name('thingsboard.register');
+    Route::get('/devices', [DeviceController::class, 'index']); // Get all devices
+    Route::post('/devices', [DeviceController::class, 'store']); // Add a new device
