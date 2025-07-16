@@ -3,25 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\Device;
-use App\Models\User; 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException; // <--- Import this
 
 class DeviceController extends Controller
 {
     /**
      * Authenticate user by ThingsBoard token from Authorization header.
+     * @param Request $request
+     * @return User|null
      */
     protected function authenticateUserByThingsboardToken(Request $request): ?User
     {
-        $token = $request->bearerToken(); // Get the token from the Authorization: Bearer header
+        $token = $request->bearerToken();
 
         if (!$token) {
-            return null; 
+            return null;
         }
 
-        // Find the user by the thingsboard_token in database
         $user = User::where('thingsboard_token', $token)->first();
 
         if ($user) {
@@ -57,22 +59,35 @@ class DeviceController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
+        // --- CRUCIAL CHANGE START ---
+        // Manually check for existing device_id for this user BEFORE general validation
+        $thingsboardDeviceId = $request->input('thingsboard_device_id');
+
+        if ($thingsboardDeviceId) {
+            $existingDevice = $user->devices()->where('thingsboard_device_id', $thingsboardDeviceId)->first();
+
+            if ($existingDevice) {
+                // If device ID is taken by another device of this user, return a custom error
+                throw ValidationException::withMessages([
+                    'thingsboard_device_id' => ["This ID is already taken by device '{$existingDevice->name}'."],
+                ])->status(409); // Use 409 Conflict for this specific case
+            }
+        }
+        // --- CRUCIAL CHANGE END ---
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:sensor,actuator,controller',
             'thingsboard_device_id' => [
                 'required',
                 'string',
-                'uuid', 
-                Rule::unique('devices', 'thingsboard_device_id')->where(function ($query) use ($user) {
-                    return $query->where('user_id', $user->id); // Use $user->id here
-                }),
+                'uuid', // Keep UUID validation
+                // Removed Rule::unique here as we are handling uniqueness manually above
             ],
         ]);
 
-        $device = $user->devices()->create($validated); 
+        $device = $user->devices()->create($validated);
+
         return response()->json($device, 201);
     }
-
-    // add update, show, destroy methods 
 }

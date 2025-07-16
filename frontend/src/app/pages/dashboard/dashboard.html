@@ -7,11 +7,6 @@
     </div>
   </header>
   <main class="layout-column">
-    <!--  loading/error for initial data/devices -->
-    <div *ngIf="loading">Loading devices and telemetry...</div>
-    <div *ngIf="error">{{ error }}</div>
-
-    <!-- Display existing devices from Laravel -->
     <div class="device-list" *ngIf="!loading && devices.length > 0">
       <h3>My Devices</h3>
       <div class="device-item" *ngFor="let device of devices">
@@ -19,7 +14,7 @@
           >{{ device.name }} ({{ device.type }}) - ID:
           {{ device.thingsboard_device_id }}</span
         >
-        <!-- Display telemetry for each device  -->
+        <!-- Display telemetry for each device -->
         <div class="telemetry-info">
           <span *ngIf="telemetryLoading.get(device.thingsboard_device_id)"
             >Loading telemetry...</span
@@ -39,7 +34,7 @@
             Telemetry: {{ deviceTelemetry.get(device.thingsboard_device_id) }}
           </span>
         </div>
-        <!-- will add more details/actions here -->
+        <!-- You can add more details or actions here -->
       </div>
     </div>
     <div *ngIf="!loading && devices.length === 0">
@@ -47,7 +42,7 @@
     </div>
   </main>
 
-  <!-- Device Modal -->
+  <!-- Add Device Modal -->
   <div *ngIf="showAddDeviceModal" class="modal-overlay">
     <div class="modal-content">
       <h2>Add New Device</h2>
