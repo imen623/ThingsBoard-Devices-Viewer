@@ -1,29 +1,33 @@
-// src/app/dashboard/dashboard.component.ts
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // Import ChangeDetectorRef
+import { Component, OnInit, ChangeDetectorRef, Input } from '@angular/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../services/api.service';
 import { finalize, timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatDialogModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard implements OnInit {
+  /* INITIATING LOCAL VARIABLES */
   loading = true;
   error: string | null = null;
-  isModalOpen = false;
-  selectedItem: any;
   showAddDeviceModal = false;
   devices: any[] = [];
   idError = false;
-  idErrorMessage: string | null = null; // Specific error message for ID
+  idErrorMessage: string | null = null;
   savingDevice = false;
 
   deviceTelemetry: Map<string, number | string> = new Map();
@@ -36,16 +40,24 @@ export class Dashboard implements OnInit {
     type: 'sensor',
   };
 
-  constructor(
-    private apiService: ApiService,
-    private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
-  ) {} // Inject ChangeDetectorRef
+  // Inject services (API, ChangeDetectorRef)
+  constructor(private apiService: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.fetchDevices();
   }
 
+  /* DEVICES */
+  // Request device list from API, Fetch telemetry for each device found, Update view manually using ChangeDetectorRef
+  /*rxjs structure (when getDevices returns observable): 
+          this.apiService.getDevices()
+          .pipe(finalize(() => (this.loading = false)))
+          .subscribe({
+            next: (devices) => { ... },
+            error: (err) => { ... }
+          });
+  /*else, when Promise: this.apiService.getData().then(...).catch(...);
+ */
   fetchDevices(): void {
     this.loading = true;
     this.apiService
@@ -71,6 +83,12 @@ export class Dashboard implements OnInit {
         },
       });
   }
+
+  /* TELEMETRY */
+  // Start loading state and clear previous error
+  // Attempt telemetry fetch with timeout and error handling
+  // Handle telemetry response (extract temperature)
+  // Fallbacks for error, null, or no data
 
   fetchTelemetryForDevice(deviceId: string): void {
     this.telemetryLoading.set(deviceId, true);
@@ -147,6 +165,7 @@ export class Dashboard implements OnInit {
       });
   }
 
+  /* MODAL OPERATIONS */
   openAddDeviceModal(): void {
     this.showAddDeviceModal = true;
     this.idError = false;
@@ -237,14 +256,5 @@ export class Dashboard implements OnInit {
           this.cdr.detectChanges(); // Force update on validation error
         },
       });
-  }
-
-  openModal(item: any): void {
-    this.selectedItem = item;
-    this.isModalOpen = true;
-  }
-
-  closeModal(): void {
-    this.isModalOpen = false;
   }
 }

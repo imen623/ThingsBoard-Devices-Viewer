@@ -1,6 +1,7 @@
 <div class="layout">
   <header>
     <div class="container">
+      <h3>My Devices</h3>
       <button class="new-device" (click)="openAddDeviceModal()">
         Add Device
       </button>
@@ -8,34 +9,57 @@
   </header>
   <main class="layout-column">
     <div class="device-list" *ngIf="!loading && devices.length > 0">
-      <h3>My Devices</h3>
-      <div class="device-item" *ngFor="let device of devices">
-        <span
-          >{{ device.name }} ({{ device.type }}) - ID:
-          {{ device.thingsboard_device_id }}</span
-        >
-        <!-- Display telemetry for each device -->
-        <div class="telemetry-info">
-          <span *ngIf="telemetryLoading.get(device.thingsboard_device_id)"
-            >Loading telemetry...</span
-          >
-          <span
-            *ngIf="telemetryError.get(device.thingsboard_device_id)"
-            class="error-message"
-          >
-            {{ telemetryError.get(device.thingsboard_device_id) }}
-          </span>
-          <span
-            *ngIf="
-              !telemetryLoading.get(device.thingsboard_device_id) &&
-              !telemetryError.get(device.thingsboard_device_id)
+      <mat-card class="device-item" *ngFor="let device of devices">
+        <mat-card-title>{{ device.name }}</mat-card-title>
+        <p style="font-size: 11px; color: gray">
+          ID:{{ device.thingsboard_device_id }}
+        </p>
+
+        <mat-card-content>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
             "
           >
-            Telemetry: {{ deviceTelemetry.get(device.thingsboard_device_id) }}
-          </span>
-        </div>
-        <!-- You can add more details or actions here -->
-      </div>
+            <div>
+              <p class="mat-subheading-1" style="margin: 0; line-height: 1.5">
+                Type: {{ device.type }}
+              </p>
+              <p class="mat-subheading-1" style="margin: 0; line-height: 1.5">
+                Info: Telemetry
+              </p>
+            </div>
+
+            <div class="telemetry-info" style="text-align: right">
+              <mat-progress-spinner
+                *ngIf="telemetryLoading.get(device.thingsboard_device_id)"
+                diameter="24"
+                mode="indeterminate"
+              ></mat-progress-spinner>
+
+              <div
+                *ngIf="telemetryError.get(device.thingsboard_device_id)"
+                class="error-message"
+              >
+                {{ telemetryError.get(device.thingsboard_device_id) }}
+              </div>
+
+              <div
+                *ngIf="
+                  !telemetryLoading.get(device.thingsboard_device_id) &&
+                  !telemetryError.get(device.thingsboard_device_id)
+                "
+                class="telemetry-value"
+              >
+                {{ deviceTelemetry.get(device.thingsboard_device_id) }} °C
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
     <div *ngIf="!loading && devices.length === 0">
       <p>No devices added yet. Click "Add Device" to get started!</p>
