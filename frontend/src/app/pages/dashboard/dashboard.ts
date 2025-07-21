@@ -37,7 +37,8 @@ export class Dashboard implements OnInit {
   newDevice = {
     name: '',
     id: '',
-    type: 'sensor',
+    type: 'Indoor',
+    info: '',
   };
 
   // Inject services (API, ChangeDetectorRef)
@@ -127,17 +128,28 @@ export class Dashboard implements OnInit {
         next: (response) => {
           console.log(`[Telemetry] Response for ${deviceId}:`, response);
 
-          if (
-            response &&
-            response.temperature &&
-            response.temperature.length > 0
-          ) {
-            const latestTemperature = response.temperature[0].value;
-            console.log(
-              `[Telemetry] Extracted temperature for ${deviceId}: ${latestTemperature}`
-            );
-            this.deviceTelemetry.set(deviceId, Number(latestTemperature));
-            this.telemetryError.set(deviceId, null); // Clear error if data is found
+          if (response && typeof response === 'object') {
+            const telemetryKey = Object.keys(response)[0];
+            const telemetryData = response[telemetryKey];
+
+            if (Array.isArray(telemetryData) && telemetryData.length > 0) {
+              const latestValue = telemetryData[0].value;
+
+              console.log(
+                `[Telemetry] Extracted ${telemetryKey} for ${deviceId}: ${latestValue}`
+              );
+
+              this.deviceTelemetry.set(deviceId, Number(latestValue));
+
+              const targetDevice = this.devices.find(
+                (d) => d.thingsboard_device_id === deviceId
+              );
+              if (targetDevice) {
+                targetDevice.info = telemetryKey;
+              }
+
+              this.telemetryError.set(deviceId, null); // Clear error if data is found
+            }
           } else if (response === null) {
             console.log(
               `[Telemetry] Response for ${deviceId} was null (likely caught error).`
@@ -170,7 +182,7 @@ export class Dashboard implements OnInit {
     this.showAddDeviceModal = true;
     this.idError = false;
     this.idErrorMessage = null;
-    this.newDevice = { name: '', id: '', type: 'sensor' };
+    this.newDevice = { name: '', id: '', type: 'Indoor', info: '' };
   }
 
   closeAddDeviceModal(): void {
@@ -195,6 +207,7 @@ export class Dashboard implements OnInit {
               name: this.newDevice.name,
               type: this.newDevice.type,
               thingsboard_device_id: this.newDevice.id,
+              info: Response,
             };
 
             this.apiService.saveDevice(deviceToSave).subscribe({

@@ -15,7 +15,7 @@ export class ApiService {
   getData(
     deviceId: string = '424363c0-5e51-11f0-83dd-65e1b21422bc'
   ): Observable<any> {
-    const url = `${this.thingsboardBaseUrl}/plugins/telemetry/DEVICE/${deviceId}/values/timeseries?keys=temperature`;
+    const url = `${this.thingsboardBaseUrl}/plugins/telemetry/DEVICE/${deviceId}/values/timeseries`;
     const token = sessionStorage.getItem('token'); // ThingsBoard token
 
     let headers = new HttpHeaders();

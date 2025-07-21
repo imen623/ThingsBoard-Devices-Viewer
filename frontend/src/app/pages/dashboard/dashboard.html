@@ -29,7 +29,7 @@
                 Type: {{ device.type }}
               </p>
               <p class="mat-subheading-1" style="margin: 0; line-height: 1.5">
-                Info: Telemetry
+                Telemetry: {{ device.info }}
               </p>
             </div>
 
@@ -47,6 +47,7 @@
                 {{ telemetryError.get(device.thingsboard_device_id) }}
               </div>
 
+              <!-- showing unit depending on info (key) -->
               <div
                 *ngIf="
                   !telemetryLoading.get(device.thingsboard_device_id) &&
@@ -54,7 +55,39 @@
                 "
                 class="telemetry-value"
               >
-                {{ deviceTelemetry.get(device.thingsboard_device_id) }} °C
+                <ng-container [ngSwitch]="device.info">
+                  <span *ngSwitchCase="'temperature'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} °C
+                  </span>
+                  <span *ngSwitchCase="'humidity'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} %
+                  </span>
+                  <span *ngSwitchCase="'pressure'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} hPa
+                  </span>
+                  <span *ngSwitchCase="'light'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} lux
+                  </span>
+                  <span *ngSwitchCase="'voltage'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} V
+                  </span>
+                  <span *ngSwitchCase="'current'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} A
+                  </span>
+                  <span *ngSwitchCase="'energy'">
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} kWh
+                  </span>
+                  <span *ngSwitchCase="'occupancy'">
+                    {{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                        ? "Occupied"
+                        : "Vacant"
+                    }}
+                  </span>
+                  <span *ngSwitchDefault>
+                    {{ deviceTelemetry.get(device.thingsboard_device_id) }}
+                  </span>
+                </ng-container>
               </div>
             </div>
           </div>
@@ -96,9 +129,8 @@
         <div class="form-group">
           <label>Device Type:</label>
           <select [(ngModel)]="newDevice.type" name="deviceType" required>
-            <option value="sensor">Sensor</option>
-            <option value="actuator">Actuator</option>
-            <option value="controller">Controller</option>
+            <option value="indoor">Indoor</option>
+            <option value="outdoor">Outdoor</option>
           </select>
         </div>
         <div class="modal-actions">
