@@ -10,7 +10,29 @@
   <main class="layout-column">
     <div class="device-list" *ngIf="!loading && devices.length > 0">
       <mat-card class="device-item" *ngFor="let device of devices">
-        <mat-card-title>{{ device.name }}</mat-card-title>
+        <div class="card-header">
+          <mat-card-title>{{ device.name }}</mat-card-title>
+          <div class="device-actions">
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="deviceMenu"
+              aria-label="Device actions"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #deviceMenu="matMenu">
+              <button mat-menu-item (click)="openUpdateDeviceModal(device)">
+                <mat-icon>edit</mat-icon>
+                <span>Update</span>
+              </button>
+              <button mat-menu-item (click)="confirmDeleteDevice(device)">
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
         <p style="font-size: 11px; color: gray">
           ID:{{ device.thingsboard_device_id }}
         </p>
@@ -47,7 +69,6 @@
                 {{ telemetryError.get(device.thingsboard_device_id) }}
               </div>
 
-              <!-- showing unit depending on info (key) -->
               <div
                 *ngIf="
                   !telemetryLoading.get(device.thingsboard_device_id) &&
@@ -56,27 +77,48 @@
                 class="telemetry-value"
               >
                 <ng-container [ngSwitch]="device.info">
-                  <span *ngSwitchCase="'temperature'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} °C
-                  </span>
-                  <span *ngSwitchCase="'humidity'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} %
-                  </span>
-                  <span *ngSwitchCase="'pressure'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} hPa
-                  </span>
-                  <span *ngSwitchCase="'light'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} lux
-                  </span>
-                  <span *ngSwitchCase="'voltage'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} V
-                  </span>
-                  <span *ngSwitchCase="'current'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} A
-                  </span>
-                  <span *ngSwitchCase="'energy'">
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }} kWh
-                  </span>
+                  <span *ngSwitchCase="'temperature'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    °C</span
+                  >
+                  <span *ngSwitchCase="'humidity'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    %</span
+                  >
+                  <span *ngSwitchCase="'pressure'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    hPa</span
+                  >
+                  <span *ngSwitchCase="'light'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    lux</span
+                  >
+                  <span *ngSwitchCase="'voltage'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    V</span
+                  >
+                  <span *ngSwitchCase="'current'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    A</span
+                  >
+                  <span *ngSwitchCase="'energy'"
+                    >{{
+                      deviceTelemetry.get(device.thingsboard_device_id)
+                    }}
+                    kWh</span
+                  >
                   <span *ngSwitchCase="'occupancy'">
                     {{
                       deviceTelemetry.get(device.thingsboard_device_id)
@@ -84,9 +126,9 @@
                         : "Vacant"
                     }}
                   </span>
-                  <span *ngSwitchDefault>
-                    {{ deviceTelemetry.get(device.thingsboard_device_id) }}
-                  </span>
+                  <span *ngSwitchDefault>{{
+                    deviceTelemetry.get(device.thingsboard_device_id)
+                  }}</span>
                 </ng-container>
               </div>
             </div>
@@ -94,6 +136,7 @@
         </mat-card-content>
       </mat-card>
     </div>
+
     <div *ngIf="!loading && devices.length === 0">
       <p>No devices added yet. Click "Add Device" to get started!</p>
     </div>
@@ -121,7 +164,6 @@
             name="deviceId"
             required
           />
-          <!-- Display specific ID error message -->
           <div *ngIf="idError" class="error-message">
             {{ idErrorMessage || "Invalid Device ID" }}
           </div>
@@ -146,6 +188,71 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Update Device Modal -->
+  <div *ngIf="showUpdateDeviceModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Update Device: {{ selectedDeviceForUpdate?.name }}</h2>
+      <form (ngSubmit)="updateDevice()">
+        <div class="form-group">
+          <label>Device Type:</label>
+          <select
+            [(ngModel)]="selectedDeviceForUpdate.type"
+            name="updateDeviceType"
+            required
+          >
+            <option value="indoor">Indoor</option>
+            <option value="outdoor">Outdoor</option>
+          </select>
+        </div>
+        <div *ngIf="idError" class="error-message">
+          {{ idErrorMessage || "Failed to update device" }}
+        </div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeUpdateDeviceModal()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="confirm-btn" [disabled]="updatingDevice">
+            {{ updatingDevice ? "Updating..." : "Update" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div *ngIf="showConfirmDeleteModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Confirm Deletion</h2>
+      <p>
+        Are you sure you want to delete device:
+        <strong style="color: #ff4d4f">{{ deviceToDelete?.name }}</strong
+        >? This action cannot be undone.
+      </p>
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="cancel-btn"
+          (click)="closeConfirmDeleteModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="danger-btn"
+          (click)="deleteDevice()"
+          [disabled]="deletingDevice"
+        >
+          {{ deletingDevice ? "Deleting..." : "Delete" }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

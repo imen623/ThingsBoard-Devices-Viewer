@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { ApiService } from '../../services/api.service';
 import { finalize, timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -16,6 +18,8 @@ import { of } from 'rxjs';
     MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatIconModule,
+    MatMenuModule,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -40,7 +44,13 @@ export class Dashboard implements OnInit {
     type: 'Indoor',
     info: '',
   };
+  showUpdateDeviceModal = false; // Controls the visibility of the update modal
+  selectedDeviceForUpdate: any | null = null; // Stores the device data for the update form
+  updatingDevice = false; // Indicates if an update operation is in progress
 
+  showConfirmDeleteModal = false; // Controls the visibility of the delete confirmation modal
+  deviceToDelete: any | null = null; // Stores the device object slated for deletion
+  deletingDevice = false; // Indicates if a delete operation is in progress
   // Inject services (API, ChangeDetectorRef)
   constructor(private apiService: ApiService, private cdr: ChangeDetectorRef) {}
 
@@ -267,6 +277,110 @@ export class Dashboard implements OnInit {
             `Cannot find device with ID: ${this.newDevice.id}`;
           console.error('ThingsBoard ID validation error:', validationErr);
           this.cdr.detectChanges(); // Force update on validation error
+        },
+      });
+  }
+
+  //for the delete and update
+  openUpdateDeviceModal(device: any): void {
+    this.selectedDeviceForUpdate = { ...device };
+    this.showUpdateDeviceModal = true;
+    this.idError = false;
+    this.idErrorMessage = null;
+  }
+
+  closeUpdateDeviceModal(): void {
+    this.showUpdateDeviceModal = false;
+    this.selectedDeviceForUpdate = null;
+    this.idError = false;
+    this.idErrorMessage = null;
+    this.updatingDevice = false;
+  }
+
+  updateDevice(): void {
+    if (!this.selectedDeviceForUpdate || !this.selectedDeviceForUpdate.id) {
+      console.warn('No device selected for update or missing ID.');
+      return;
+    }
+
+    this.updatingDevice = true;
+    this.idError = false;
+    this.idErrorMessage = null;
+
+    const dataToUpdate = {
+      name: this.selectedDeviceForUpdate.name,
+      type: this.selectedDeviceForUpdate.type,
+      info: this.selectedDeviceForUpdate.info,
+    };
+
+    this.apiService
+      .updateDevice(this.selectedDeviceForUpdate.id, dataToUpdate)
+      .pipe(finalize(() => (this.updatingDevice = false)))
+      .subscribe({
+        next: (updatedDevice) => {
+          console.log('Device updated successfully:', updatedDevice);
+          const index = this.devices.findIndex(
+            (d) => d.id === updatedDevice.id
+          );
+          if (index !== -1) {
+            this.devices[index] = updatedDevice;
+          }
+          this.closeUpdateDeviceModal();
+          this.error = null;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error updating device:', err);
+          this.idError = true;
+          this.idErrorMessage = err.message || 'Failed to update device.';
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  confirmDeleteDevice(device: any): void {
+    this.deviceToDelete = device;
+    this.showConfirmDeleteModal = true;
+  }
+
+  closeConfirmDeleteModal(): void {
+    this.showConfirmDeleteModal = false;
+    this.deviceToDelete = null;
+    this.deletingDevice = false;
+  }
+
+  deleteDevice(): void {
+    if (!this.deviceToDelete || !this.deviceToDelete.id) {
+      console.warn('No device selected for deletion or missing ID.');
+      return;
+    }
+
+    this.deletingDevice = true;
+
+    this.apiService
+      .deleteDevice(this.deviceToDelete.id)
+      .pipe(finalize(() => (this.deletingDevice = false)))
+      .subscribe({
+        next: () => {
+          console.log(
+            'Device deleted successfully:',
+            this.deviceToDelete!.name
+          );
+          this.devices = this.devices.filter(
+            (d) => d.id !== this.deviceToDelete!.id
+          );
+          this.closeConfirmDeleteModal();
+          this.error = null;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error deleting device:', err);
+          alert(
+            'Failed to delete device: ' +
+              (err.message || 'Unknown error. Please try again.')
+          );
+          this.closeConfirmDeleteModal();
+          this.cdr.detectChanges();
         },
       });
   }

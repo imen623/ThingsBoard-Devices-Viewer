@@ -20,3 +20,5 @@ use App\Http\Controllers\DeviceController;
     Route::post('/thingsboard/register', [AuthController::class, 'registerAfterThingsBoard']) ->name('thingsboard.register');
     Route::get('/devices', [DeviceController::class, 'index']); // Get all devices
     Route::post('/devices', [DeviceController::class, 'store']); // Add a new device
+    Route::put('/devices/{device}', [DeviceController::class, 'update']); // For updating a device by its ID
+    Route::delete('/devices/{device}', [DeviceController::class, 'destroy']); // For deleting a device by its ID

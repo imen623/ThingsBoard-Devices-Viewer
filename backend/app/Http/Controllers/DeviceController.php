@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException; // <--- Import this
+use Illuminate\Validation\ValidationException;
 
 class DeviceController extends Controller
 {
@@ -59,35 +59,78 @@ class DeviceController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        // --- CRUCIAL CHANGE START ---
-        // Manually check for existing device_id for this user BEFORE general validation
         $thingsboardDeviceId = $request->input('thingsboard_device_id');
 
         if ($thingsboardDeviceId) {
             $existingDevice = $user->devices()->where('thingsboard_device_id', $thingsboardDeviceId)->first();
 
             if ($existingDevice) {
-                // If device ID is taken by another device of this user, return a custom error
                 throw ValidationException::withMessages([
                     'thingsboard_device_id' => ["This ID is already taken by device '{$existingDevice->name}'."],
-                ])->status(409); // Use 409 Conflict for this specific case
+                ])->status(409);
             }
         }
-        // --- CRUCIAL CHANGE END ---
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|in:sensor,actuator,controller',
+            'type' => 'required|string|in:outdoor,indoor,',
             'thingsboard_device_id' => [
                 'required',
                 'string',
                 'uuid', // Keep UUID validation
-                // Removed Rule::unique here as we are handling uniqueness manually above
             ],
         ]);
 
         $device = $user->devices()->create($validated);
 
         return response()->json($device, 201);
+    }
+
+
+    /**
+     * Update Only device type
+     */
+    public function update(Request $request, Device $device)
+    {
+        $user = $this->authenticateUserByThingsboardToken($request);
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Ensure the authenticated user owns this device
+        if ($user->id !== $device->user_id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        // Validate only the 'type' field for update
+        $validated = $request->validate([
+            'type' => 'required|string|in:outdoor,indoor', // Match your frontend options
+        ]);
+
+        $device->update($validated);
+
+        return response()->json($device, 200); // Return the updated device
+    }
+
+    /**
+     * Remove device
+     */
+    public function destroy(Request $request, Device $device)
+    {
+        $user = $this->authenticateUserByThingsboardToken($request);
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Ensure the authenticated user owns this device
+        if ($user->id !== $device->user_id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $device->delete();
+
+        return response()->json(null, 204); // 204 No Content for successful deletion
     }
 }
