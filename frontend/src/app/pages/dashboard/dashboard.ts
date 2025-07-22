@@ -336,6 +336,8 @@ export class Dashboard implements OnInit {
           this.cdr.detectChanges();
         },
       });
+    //added this line to solve reload after update not a good solution yet
+    this.fetchDevices();
   }
 
   confirmDeleteDevice(device: any): void {
